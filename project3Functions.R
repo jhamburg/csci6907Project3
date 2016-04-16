@@ -97,6 +97,49 @@ cleanCorpus <- function(corp, extraStopWords){
 }
 
 
+buildOutputs <- function(corp, 
+                         minWordFreq = 10,
+                         sparsity = .75){
+# Creates several output based on 
+# minimum freq and sparsity.
+# This function will do the following:
+#   1. Build dendrogram
+#   2. Build wordcloud
+#   3. Build bar chart of freq terms
+  
+# Find Frequent Terms and Sparse Matrix
+  myCorpTDM <- TermDocumentMatrix(corp, 
+                                  control = list(wordLengths = c(1, Inf)))
+  wFreq <- sort(rowSums(as.matrix(myCorpTDM)), decreasing = T)
+  wFreq <- subset(wFreq, wFreq >= minWordFreq)
+  myCorpSparseTDM <- removeSparseTerms(myCorpTDM, sparsity)
+  myCorpDistMatrix <- dist(scale(myCorpSparseTDM))
+  
+# Dendrogram 
+  DistMatrixHclust <- hclust(d = myCorpDistMatrix, method = 'ward.D2')
+  plot(DistMatrixHclust,
+       main = 'Cluster Dendrogram: Ward Scaled Distance',
+       xlab = '', ylab = '', sub = '')
+  
+# Word Cloud
+  pal <- brewer.pal(9, "PiYG")
+  wordcloud(names(wFreq), wFreq, random.order = FALSE, colors = pal)
+  
+# Find the Most Frequent Terms
+  fOfTerms <- findFreqTerms(myCorpTDM, 5)
+  fOfTerms
+  
+# Bar Chart of Most Frequent Terms
+  myCorpDf <- data.table(term = names(wFreq), 
+                         freq = wFreq)
+  myCorpDf[, termSort := factor(term, levels = term[order(freq)])]
+  ggplot(myCorpDf, aes(x = termSort, y = freq)) +
+    geom_bar(stat = "identity") +
+    xlab("Terms") + 
+    ylab("Frequency") + 
+    coord_flip()
+}
+
 
 ## Unnecessary Functions
 
