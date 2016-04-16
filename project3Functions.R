@@ -95,3 +95,43 @@ cleanCorpus <- function(corp, extraStopWords){
   
   invisible(corpClean)
 }
+
+
+
+## Unnecessary Functions
+
+posUsingNLP <- function(){
+  zz <- top10AllSents[1, ]
+  zz1 <- removePunctuation(zz$sentence)
+  sent_token_annotator <- Maxent_Sent_Token_Annotator()
+  word_token_annotator <- Maxent_Word_Token_Annotator()
+  a2 <- annotate(zz1, list(sent_token_annotator, word_token_annotator))
+  pos_tag_annotator <- Maxent_POS_Tag_Annotator()
+  a3 <- annotate(zz1, pos_tag_annotator, a2)
+  
+  a3w <- subset(a3, type == "word")
+  tags <- sapply(a3w$features, `[[`, "POS")
+  
+  r1 <- sprintf("%s/%s", as.String(zz1)[a3w], tags)
+  r2 <- paste(r1, collapse = " ")
+  
+  zz$SentWPOS <- r2
+}
+
+tryToUseWordnet <- function(){
+  filt <- getTermFilter(type = "ExactMatchFilter", 
+                        "computer", 
+                        ignoreCase = TRUE)
+  tms <- getIndexTerms("NOUN", 5, filt)
+  aa <- getSynsets(tms[[1]])
+}
+
+
+convertToTextReuseCorp <- function(){
+  ## Maybe try to redo 10 Largest with TextReuseCorpus?
+  
+  zz <- lapply(top10Corp, function(x) TextReuseCorpus(text = content(x),
+                                                      meta = list(meta(x))))
+  
+  yy <- TextReuseTextDocument(top10Corp[[1]])
+}
