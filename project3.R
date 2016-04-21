@@ -23,8 +23,8 @@ require(openNLP)
 require(qdap)
 
 # For wordnet package
-setDict(file.path("C:","Program Files (x86)","WordNet","2.1","dict"))
-
+#setDict(file.path("C:","Program Files (x86)","WordNet","2.1","dict"))
+setDict("dict")
 data(acq)
 
 # Convert to Lower Case
@@ -68,7 +68,7 @@ desc <- setNames(str_trim(as.character(pos_tags()$Description)),
 top10AllSents$sentWPOS <- posdat1[, 1]
 top10AllSents$pos <- str_replace_all(posdat1[, 2], desc)
 
-
+rm(posdat, posdat1, desc)
 
 
 
@@ -88,6 +88,16 @@ buildOutputs(myCleanCorp)
 ## Since "said" and "will" are freq, will delete them
 updCleanCorp <- cleanCorpus(myCorp, c("said", "will"))
 buildOutputs(updCleanCorp)
+
+
+for (top10Doc in 1:length(top10Corp)){
+  cleanCorpus(top10Corp[top10Doc], c("said", "will")) %>%
+    buildOutputs(., 
+                 minWordFreq = mean(freq_terms(content(.[[1]]))$FREQ), 
+                 docName = paste("Doc ID:", 
+                                 meta(top10Corp[top10Doc][[1]], "id")))
+}
+
 
 
 
