@@ -99,7 +99,8 @@ cleanCorpus <- function(corp, extraStopWords){
 
 buildOutputs <- function(corp, 
                          minWordFreq = 10,
-                         sparsity = .75){
+                         sparsity = .75,
+                         docName = "Full ACQ Corpus"){
 # Creates several output based on 
 # minimum freq and sparsity.
 # This function will do the following:
@@ -108,36 +109,53 @@ buildOutputs <- function(corp,
 #   3. Build bar chart of freq terms
   
 # Find Frequent Terms and Sparse Matrix
+
   myCorpTDM <- TermDocumentMatrix(corp, 
                                   control = list(wordLengths = c(1, Inf)))
   wFreq <- sort(rowSums(as.matrix(myCorpTDM)), decreasing = T)
+  if(max(wFreq) < minWordFreq){
+    cat("Minimum word frequency filter (minWordFreq: ",
+        minWordFreq, 
+        ") is greater than the maximum word frequency.",
+        "\nSetting minWordFreq to",
+        "maximum word frequency:", 
+        max(wFreq))
+    minWordFreq <- wFreq
+  }
   wFreq <- subset(wFreq, wFreq >= minWordFreq)
+  if(is.null(wFreq)) stop("minWordFreq too large")
   myCorpSparseTDM <- removeSparseTerms(myCorpTDM, sparsity)
   myCorpDistMatrix <- dist(scale(myCorpSparseTDM))
   
 # Dendrogram 
   DistMatrixHclust <- hclust(d = myCorpDistMatrix, method = 'ward.D2')
   plot(DistMatrixHclust,
-       main = 'Cluster Dendrogram: Ward Scaled Distance',
+       main = paste0('Cluster Dendrogram for ',
+                    docName,
+                    ': Ward Scaled Distance'),
        xlab = '', ylab = '', sub = '')
   
 # Word Cloud
-  pal <- brewer.pal(9, "PiYG")
-  wordcloud(names(wFreq), wFreq, random.order = FALSE, colors = pal)
-  
+  pal <- brewer.pal(6, "RdYlGn")
+  wordcloud(names(wFreq), wFreq, random.order = FALSE, 
+            scale = c(2, .3), colors = pal)
+
 # Find the Most Frequent Terms
-  fOfTerms <- findFreqTerms(myCorpTDM, 5)
-  fOfTerms
+  fOfTerms <- findFreqTerms(myCorpTDM, minWordFreq)
+  cat("Terms Greater than ", minWordFreq, " Freq:\n\n")
+  print(fOfTerms)
   
 # Bar Chart of Most Frequent Terms
   myCorpDf <- data.table(term = names(wFreq), 
                          freq = wFreq)
   myCorpDf[, termSort := factor(term, levels = term[order(freq)])]
-  ggplot(myCorpDf, aes(x = termSort, y = freq)) +
-    geom_bar(stat = "identity") +
-    xlab("Terms") + 
-    ylab("Frequency") + 
-    coord_flip()
+  freqBar <- ggplot(myCorpDf, aes(x = termSort, y = freq)) +
+              geom_bar(stat = "identity") +
+              xlab("Terms") + 
+              ylab("Frequency") + 
+              ggtitle(paste("Most Frequent Terms of", docName)) +
+              coord_flip()
+  print(freqBar)
 }
 
 
