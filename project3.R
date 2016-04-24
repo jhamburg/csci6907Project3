@@ -21,6 +21,7 @@ require(stringr)
 require(data.table)
 require(openNLP)
 require(qdap)
+require(magrittr)
 
 # For wordnet package
 #setDict(file.path("C:","Program Files (x86)","WordNet","2.1","dict"))
@@ -81,12 +82,15 @@ rm(posdat, posdat1, desc)
 # Builds output based on original Corp
 myCleanCorp <- cleanCorpus(myCorp)
 buildOutputs(myCleanCorp)
+buildOutputs(myCleanCorp, sparsity = .8)
 
 ### Looks like "said" is really frequent.  
 ### So is "dlrs" or "dollars", share, and company
 
+myCorpTest <- tm_map(myCorp, content_transformer(replaceSimilarWords))
+
 ## Since "said" and "will" are freq, will delete them
-updCleanCorp <- cleanCorpus(myCorp, c("said", "will"))
+updCleanCorp <- cleanCorpus(myCorpTest, c("said", "will", "also"))
 buildOutputs(updCleanCorp)
 
 
@@ -101,15 +105,15 @@ for (top10Doc in 1:length(top10Corp)){
 
 
 
-tf_idf <- weightTfIdf(m = myCorpTDM, normalize = TRUE)
-tf_idf_mat <- as.matrix(tf_idf)
+#tf_idf <- weightTfIdf(m = myCorpTDM, normalize = TRUE)
+#tf_idf_mat <- as.matrix(tf_idf)
 
-tfIdfDist <- dist(tf_idf_mat, method = 'cosine')
+#tfIdfDist <- dist(tf_idf_mat, method = 'cosine')
 
-tfIdfDistHclust <- hclust(d = tfIdfDist, method = 'ward.D2')
-plot(tfIdfDistHclust,
-     main = 'Cluster Dendrogram: Ward Cosine Distance',
-     xlab = '', ylab = '', sub = '')
+#tfIdfDistHclust <- hclust(d = tfIdfDist, method = 'ward.D2')
+# plot(tfIdfDistHclust,
+#     main = 'Cluster Dendrogram: Ward Cosine Distance',
+#     xlab = '', ylab = '', sub = '')
 
 
 
