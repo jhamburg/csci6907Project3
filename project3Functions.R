@@ -77,12 +77,12 @@ maxSent <- function(doc){
 
 
 cleanCorpus <- function(corp, extraStopWords){
-  ## This function will do the following:
-  #   1: Remove Punctuation
-  #   2: Remove Numbers
-  #   3: Remove "stop" words and any extra words
-  #      provided by the user
-  #   4: Remove extra whitespace  
+## This function will do the following:
+#   1: Remove Punctuation
+#   2: Remove Numbers
+#   3: Remove "stop" words and any extra words
+#      provided by the user
+#   4: Remove extra whitespace  
   if (missing(extraStopWords)) extraStopWords <- ""
   stopifnot(is.character(extraStopWords))
   
@@ -94,6 +94,26 @@ cleanCorpus <- function(corp, extraStopWords){
     tm_map(x = ., FUN = stripWhitespace) 
   
   invisible(corpClean)
+}
+
+replaceSimilarWords <- function(corp){
+## This function will replace similiar words in the corpus
+  corpClean <- gsub("corp", "company", corp) %>%
+          gsub("co ", "company ", x = .) %>%
+          gsub("inc$", "company", .) %>%
+          gsub("companies", "company", .) %>%
+          gsub("companys$", "company", .) %>%
+          gsub("firm$", "company", .) %>%
+          gsub("acquired", "acquire", .) %>%
+          gsub("acquisition", "acquire", .) %>%
+          gsub("dlrs", "dollars", .) %>%
+          gsub("ltd", "company", .) %>%
+          gsub("mln", "million", .) %>%
+          gsub("years", "year", .) %>%
+          gsub("tender", "dollars", .) %>%
+          gsub("cash", "dollars", .) %>%
+          gsub("agreed", "agree", .) 
+    invisible(corpClean)
 }
 
 
