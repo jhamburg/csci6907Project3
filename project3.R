@@ -1,6 +1,6 @@
 # Load in Functions
 source("project3Functions.R")
-
+source("zipfrFreq.R")
 
 # Load package and data
 #require(ctv)
@@ -70,7 +70,12 @@ top10AllSents$sentWPOS <- posdat1[, 1]
 top10AllSents$pos <- str_replace_all(posdat1[, 2], desc)
 
 rm(posdat, posdat1, desc)
-
+##frequency analysis
+##use top 10 corp
+for(sentinel in 1:10)
+{  
+  zipfr_work(top10Corp[[sentinel]])
+}
 
 
 
