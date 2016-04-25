@@ -31,12 +31,30 @@ data(acq)
 # Convert to Lower Case
 myCorp <- tm_map(acq, content_transformer(tolower))
 
-#changeDlrs <- function(x) gsub("dlrs", "dollars", x)
-#myCorp <- tm_map(myCorp, content_transformer(changeDlrs))
+###############################
+## This section will run on the 
+## entire corpus to find out
+## more of what docs are in it
 
+# Builds output based on original Corp
+myCleanCorp <- cleanCorpus(myCorp)
+buildOutputs(myCleanCorp)
+buildOutputs(myCleanCorp, sparsity = .8)
 
+### Looks like "said" is really frequent.  
+### So is "dlrs" or "dollars", share, and company
+### Since "said" and "will" are freq, will delete them
 
-#### 10 Largest Documents by wordcount
+updCleanCorp <- tm_map(myCorp, 
+                       content_transformer(replaceSimilarWords)) %>%
+                cleanCorpus(., c("said", "will", "also"))
+
+buildOutputs(updCleanCorp)
+
+#####################################
+# Find the 10 Largest Docs
+
+# 10 Largest Documents by wordcount
 top10Results <- tenLargest(myCorp)
 
 # Top 10 Docs by wordcount in a table
@@ -45,6 +63,26 @@ top10 <- top10Results[[1]]
 # Top 10 docs in a corpus
 top10Corp <- top10Results[[2]]
 rm(top10Results)
+
+
+#####################################
+# Lecture 7 functions for 10 
+# Largest Docs
+####################################
+
+for (top10Doc in 1:length(top10Corp)){
+  cleanCorpus(top10Corp[top10Doc], c("said", "will")) %>%
+    buildOutputs(., 
+                 minWordFreq = mean(freq_terms(content(.[[1]]))$FREQ), 
+                 docName = paste("Doc ID:", 
+                                 meta(top10Corp[top10Doc][[1]], "id")))
+}
+
+
+#####################################
+# Functions for 10 Largest Docs
+# for 2nd paragraph in proj desc.
+####################################
 
 ## Find longest words
 top10MaxWords <- lapply(top10Corp, maxWord)
@@ -74,33 +112,8 @@ rm(posdat, posdat1, desc)
 
 
 
-###############################
-## This section will run on the 
-## entire corpus to find out
-## more of what docs are in it
-
-# Builds output based on original Corp
-myCleanCorp <- cleanCorpus(myCorp)
-buildOutputs(myCleanCorp)
-buildOutputs(myCleanCorp, sparsity = .8)
-
-### Looks like "said" is really frequent.  
-### So is "dlrs" or "dollars", share, and company
-
-myCorpTest <- tm_map(myCorp, content_transformer(replaceSimilarWords))
-
-## Since "said" and "will" are freq, will delete them
-updCleanCorp <- cleanCorpus(myCorpTest, c("said", "will", "also"))
-buildOutputs(updCleanCorp)
 
 
-for (top10Doc in 1:length(top10Corp)){
-  cleanCorpus(top10Corp[top10Doc], c("said", "will")) %>%
-    buildOutputs(., 
-                 minWordFreq = mean(freq_terms(content(.[[1]]))$FREQ), 
-                 docName = paste("Doc ID:", 
-                                 meta(top10Corp[top10Doc][[1]], "id")))
-}
 
 
 
