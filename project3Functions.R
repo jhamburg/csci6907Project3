@@ -99,19 +99,20 @@ cleanCorpus <- function(corp, extraStopWords){
 replaceSimilarWords <- function(corp){
 ## This function will replace similiar words in the corpus
   corpClean <- gsub("corp", "company", corp) %>%
+          gsub("business", "company", x =.) %>%
           gsub("co ", "company ", x = .) %>%
-          gsub("inc$", "company", .) %>%
+          gsub("inc", "company", .) %>%
           gsub("companies", "company", .) %>%
-          gsub("companys$", "company", .) %>%
-          gsub("firm$", "company", .) %>%
+          gsub("companys", "company", .) %>%
+          gsub("firm ", "company", .) %>%
           gsub("acquired", "acquire", .) %>%
           gsub("acquisition", "acquire", .) %>%
           gsub("dlrs", "dollars", .) %>%
           gsub("ltd", "company", .) %>%
           gsub("mln", "million", .) %>%
           gsub("years", "year", .) %>%
-          gsub("tender", "dollars", .) %>%
-          gsub("cash", "dollars", .) %>%
+          gsub("shares", "share", .) %>%
+          gsub("tender", "cash", .) %>%
           gsub("agreed", "agree", .) 
     invisible(corpClean)
 }
@@ -144,9 +145,21 @@ buildOutputs <- function(corp,
   }
   wFreq <- subset(wFreq, wFreq >= minWordFreq)
   if(is.null(wFreq)) stop("minWordFreq too large")
-  myCorpSparseTDM <- removeSparseTerms(myCorpTDM, sparsity)
-  myCorpDistMatrix <- dist(scale(myCorpSparseTDM))
+
+  ## Check to see if there is sparsity, if not will 
+  ## filter for hclust based on wFreq terms
+  myCorpSparsity <- 
+    ifelse(!prod(dim(myCorpTDM)),
+           100, 
+           round((1 - length(myCorpTDM$v)/
+                    prod(dim(myCorpTDM))) * 100)) / 100
   
+  if(myCorpSparsity > 0){
+    myCorpSparseTDM <- removeSparseTerms(myCorpTDM, sparsity)
+  } else { 
+    myCorpSparseTDM <- myCorpTDM[names(wFreq), ]
+  }
+  myCorpDistMatrix <- dist(scale(myCorpSparseTDM))
 # Dendrogram 
   DistMatrixHclust <- hclust(d = myCorpDistMatrix, method = 'ward.D2')
   plot(DistMatrixHclust,
