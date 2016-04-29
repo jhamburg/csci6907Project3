@@ -114,7 +114,9 @@ for(sentinel in 1:10)
 {  
   zipfr_work(top10Corp[[sentinel]])
 }
-
+dtm <- TermDocumentMatrix(top10Corp)
+#Zipf_Plot is used to depict vocabulary growth across the corpus 
+Zipf_plot(dtm)
 
 
 
